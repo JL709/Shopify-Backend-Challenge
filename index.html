@@ -2,7 +2,7 @@
 <html>
     <head>
         <meta charset="UTF-8" />
-        <title>Countries CRUD</title>
+        <title>Inventory CRUD</title>
         <style>
             input[type="submit"],
             button,
@@ -67,7 +67,7 @@
                     event.preventDefault();
                     var prodName = document.getElementById("add-name").value;
                     var prodCount = document.getElementById("add-count").value;
-                    const item = { name: prodName, inventoryCount: prodCount };
+                    const item = { id: prodName, inventoryCount: prodCount };
                     createItem(item);
                 });
 
@@ -85,17 +85,17 @@
                     axios
                         .get("http://localhost:5000/")
                         .then((res) => {
-                            this.items = res.data;
+                            this.items = res.data.Items;
                             this.el = document.getElementById("items");
                             var data = "<tr><td>Product Name  | </td><td>Count</td><tr>";
 
                             if (this.items.length > 0) {
                                 for (i = 0; i < this.items.length; i++) {
                                     data += "<tr>";
-                                    data += "<td>" + this.items[i].name + "</td>";
+                                    data += "<td>" + this.items[i].id + "</td>";
                                     data += "<td>" + this.items[i].inventoryCount + "</td>";
                                     data += `<td><button onclick="app.Edit('${i}')">Edit</button></td>`;
-                                    data += `<td><button onclick="app.Delete('${this.items[i].name}')">Delete</button></td>`;
+                                    data += `<td><button onclick="app.Delete('${this.items[i].id}')">Delete</button></td>`;
                                     data += "</tr>";
                                 }
                             }
@@ -108,13 +108,13 @@
                 this.Edit = function (itemIndex) {
                     var nameEle = document.getElementById("edit-name");
                     var countEle = document.getElementById("edit-count");
-                    nameEle.value = this.items[itemIndex].name;
+                    nameEle.value = this.items[itemIndex].id;
                     countEle.value = this.items[itemIndex].inventoryCount;
                     document.getElementById("spoiler").style.display = "block";
                     self = this;
 
                     document.getElementById("saveEdit").onsubmit = () => {
-                        var itemName = this.items[itemIndex].name;
+                        var itemName = this.items[itemIndex].id;
                         var itemNewCount = document.getElementById("edit-count").value;
                         axios
                             .patch(`http://localhost:5000/${itemName}`, { inventoryCount: itemNewCount })
