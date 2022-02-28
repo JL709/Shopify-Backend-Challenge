@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>Inventory CRUD</title>
+        <style>
+            input[type="submit"],
+            button,
+            [aria-label] {
+                cursor: pointer;
+            }
+            #spoiler {
+                display: none;
+            }
+            #error {
+                color: red;
+            }
+        </style>
+    </head>
+    <body>
+        <form id="adder">
+            <input type="text" id="add-name" placeholder="New Product Name" />
+            <input type="text" id="add-count" placeholder="New Inventory Count" />
+            <input type="submit" value="Add" />
+        </form>
+
+        <div id="error"></div>
+
+        <div id="spoiler" role="aria-hidden">
+            <form action="javascript:void(0);" method="POST" id="saveEdit">
+                <input type="text" id="edit-name" readonly />
+                <input type="text" id="edit-count" placeholder="New Inventory Count" />
+                <input type="submit" value="Finish Edit" /> <a onclick="CloseInput()" aria-label="Close">&#10006;</a>
+            </form>
+        </div>
+
+        <table>
+            <tr>
+                <th>Inventory</th>
+            </tr>
+            <tbody id="items"></tbody>
+        </table>
+
+        <button onclick="window.open('http://localhost:5000/downloadcsv', '_blank')">Download Inventory as CSV</button>
+
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+        <script>
+            var app = new (function () {
+                const createItem = (item) => {
+                    axios
+                        .post("http://localhost:5000/add", item)
+                        .then((response) => {
+                            const resData = response.data;
+                            if (resData.message && resData.message === "Item already exists") {
+                                document.getElementById("error").innerHTML = "Item already exists";
+                            } else {
+                                console.log(`POST: item is added`, resData);
+                                document.getElementById("error").innerHTML = "";
+                                this.fetchItems();
+                            }
+                        })
+                        .catch((error) => console.error(error));
+                };
+
+                const adderForm = document.querySelector("#adder");
+                const formEvent = adderForm.addEventListener("submit", (event) => {
+                    event.preventDefault();
+                    var prodName = document.getElementById("add-name").value;
+                    var prodCount = document.getElementById("add-count").value;
+                    const item = { id: prodName, inventoryCount: prodCount };
+                    createItem(item);
+                });
+
+                this.Delete = (name) => {
+                    axios
+                        .delete(`http://localhost:5000/${name}`)
+                        .then((response) => {
+                            console.log(`DELETE: item is removed`, name);
+                            this.fetchItems();
+                        })
+                        .catch((error) => console.error(error));
+                };
+
+                this.fetchItems = () => {
+                    axios
+                        .get("http://localhost:5000/")
+                        .then((res) => {
+                            this.items = res.data.Items;
+                            this.el = document.getElementById("items");
+                            var data = "<tr><td>Product Name  | </td><td>Count</td><tr>";
+
+                            if (this.items.length > 0) {
+                                for (i = 0; i < this.items.length; i++) {
+                                    data += "<tr>";
+                                    data += "<td>" + this.items[i].id + "</td>";
+                                    data += "<td>" + this.items[i].inventoryCount + "</td>";
+                                    data += `<td><button onclick="app.Edit('${i}')">Edit</button></td>`;
+                                    data += `<td><button onclick="app.Delete('${this.items[i].id}')">Delete</button></td>`;
+                                    data += "</tr>";
+                                }
+                            }
+
+                            this.el.innerHTML = data;
+                        })
+                        .catch((error) => console.error(error));
+                };
+
+                this.Edit = function (itemIndex) {
+                    var nameEle = document.getElementById("edit-name");
+                    var countEle = document.getElementById("edit-count");
+                    nameEle.value = this.items[itemIndex].id;
+                    countEle.value = this.items[itemIndex].inventoryCount;
+                    document.getElementById("spoiler").style.display = "block";
+                    self = this;
+
+                    document.getElementById("saveEdit").onsubmit = () => {
+                        var itemName = this.items[itemIndex].id;
+                        var itemNewCount = document.getElementById("edit-count").value;
+                        axios
+                            .patch(`http://localhost:5000/${itemName}`, { inventoryCount: itemNewCount })
+                            .then((response) => {
+                                console.log(`PATCH: item is edited`, name);
+                                this.fetchItems();
+                                CloseInput();
+                            })
+                            .catch((error) => console.error(error));
+                    };
+                };
+            })();
+            app.fetchItems();
+
+            function CloseInput() {
+                document.getElementById("spoiler").style.display = "none";
+            }
+        </script>
+    </body>
+</html>
