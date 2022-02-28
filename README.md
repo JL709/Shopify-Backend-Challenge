@@ -14,5 +14,5 @@ Additionally, this application allows the user to export and download the invent
 
 1. Clone this repo onto your machine.
 2. Add your own .env variables for a DynamoDB table with primary key "id", of type String
-3. In a terminal shell, open the `shop` directory and run the commands `npm install`, then `npm start`.
+3. In a terminal shell, open the `dynam` directory and run the commands `npm install`, then `npm start`.
 4. Back in the parent directory, open `index.html` in a web browser to begin using the app.
